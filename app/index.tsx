@@ -3,7 +3,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import axios from "axios";
 
 import { useEffect, useState } from 'react';
-import { Pressable, Text, TextInput, View } from "react-native";
+import { FlatList, Modal, Pressable, Text, TextInput, View } from "react-native";
 import currencies, { Currency } from './currency';
 
 export default function Index() {
@@ -28,7 +28,7 @@ export default function Index() {
       setConverted(v)
     }, 300);
 
-  }, [input, active])
+  }, [input, active, convertTo])
 
   const handleSwitch = () => {
     const tmp = convertTo
@@ -73,12 +73,13 @@ export default function Index() {
 }
 
 const Aza = ({ text, isActive, currency, setCurrency, value, setter }: { setCurrency: (c: Currency) => void, text: string, isActive: boolean, currency: Currency, value: number, setter?: (e: string) => void }) => {
+  const [open, setOpen] = useState(false)
   return (
     <View style={{ marginVertical: 9 }}>
       <Text style={{ fontSize: 12, color: "#989898" }}>{text} </Text>
 
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Pressable style={{ flexDirection: "row", gap: 4, alignItems: "center" }}>
+        <Pressable onPress={() => setOpen(true)} style={{ flexDirection: "row", gap: 4, alignItems: "center" }}>
           <View style={{ width: 40, height: 40, borderRadius: "100%", justifyContent: "center", alignItems: "center" }}>
             <Text style={{ fontSize: 22 }}>
               {currency.flag}
@@ -99,7 +100,61 @@ const Aza = ({ text, isActive, currency, setCurrency, value, setter }: { setCurr
         </View>
 
       </View>
+      {
+        open && <Modal
+          presentationStyle="overFullScreen"
+          animationType="fade"
+          transparent={true}
+          visible={open}
+          onRequestClose={() => setOpen(false)}>
+          <Pressable onPress={() => setOpen(false)} style={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: 'absolute',
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }} />
+          <View style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+          }}>
+            <View style={{ paddingLeft: 6, height: "80%" }}>
 
+              <FlatList
+                data={currencies}
+                keyExtractor={(_, id) => id.toString()}
+                numColumns={2}
+                columnWrapperStyle={{ gap: 14 }}
+                contentContainerStyle={{ gap: 14 }}
+                renderItem={({ item }) => {
+                  const isActive = item.name === currency.name
+                  return (
+                    <Pressable onPress={() => { setCurrency(item); setOpen(false) }} style={{ flex: 1, borderRadius: 20, padding: 4, alignItems: "center", justifyContent: 'center', backgroundColor: isActive ? "#fff" : "#F6F6F6" }} >
+                      <Text style={{ fontSize: 22, fontWeight: "bold", color: isActive ? "#21292B" : "#000" }} >
+                        {item.name}
+                      </Text>
+
+                      <Text style={{ marginTop: 2, fontSize: 12 }} >
+                        {item.symbol}
+                      </Text>
+
+                      {isActive && (
+                        <View style={{ marginTop: 2, paddingHorizontal: 19, paddingVertical: 3, borderRadius: 20, backgroundColor: "#21292B" }}>
+                          <Text style={{ fontSize: 10, color: "#fff" }} >
+                            Active
+                          </Text>
+                        </View>
+                      )}
+                    </Pressable>
+                  )
+                }
+                } />
+            </View>
+          </View>
+        </Modal>
+      }
     </View>
   )
 }
